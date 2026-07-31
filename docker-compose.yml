@@ -1,0 +1,62 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: kalibr_reports
+      POSTGRES_USER: kalibr
+      POSTGRES_PASSWORD: kalibr
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kalibr -d kalibr_reports"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+
+  api:
+    build: .
+    env_file: .env
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    command: sh -c "alembic upgrade head && python -m app.seed && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+    volumes:
+      - .:/app
+
+  bot:
+    build: .
+    env_file: .env
+    depends_on: [api, redis]
+    command: python -m app.bot.main
+    volumes:
+      - .:/app
+
+  worker:
+    build: .
+    env_file: .env
+    depends_on: [api, redis]
+    command: celery -A app.tasks.celery_app.celery_app worker --loglevel=INFO --concurrency=2
+    volumes:
+      - .:/app
+
+  beat:
+    build: .
+    env_file: .env
+    depends_on: [api, redis]
+    command: celery -A app.tasks.celery_app.celery_app beat --loglevel=INFO
+    volumes:
+      - .:/app
+
+volumes:
+  postgres_data:
+  redis_data:

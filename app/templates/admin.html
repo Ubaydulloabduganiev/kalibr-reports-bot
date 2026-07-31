@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ app_name }}</title>
+  <link rel="stylesheet" href="/static/admin.css">
+</head>
+<body>
+  <div id="loginView" class="auth-shell">
+    <form id="loginForm" class="card auth-card">
+      <div class="brand"><span>K</span> Kalibr Reports</div>
+      <h1 data-i18n="loginTitle">Administrator kirishi</h1>
+      <label>Email<input id="email" type="email" required autocomplete="username"></label>
+      <label data-i18n-label="password">Parol<input id="password" type="password" required autocomplete="current-password"></label>
+      <button type="submit" class="primary" data-i18n="login">Kirish</button>
+      <p id="loginError" class="error"></p>
+      <button id="langLogin" type="button" class="text-button">Русский</button>
+    </form>
+  </div>
+
+  <div id="appView" class="app hidden">
+    <aside>
+      <div class="brand"><span>K</span> Kalibr Reports</div>
+      <nav>
+        <button data-page="dashboard" data-permission="view_dashboard" class="active" data-i18n="dashboard">Boshqaruv paneli</button>
+        <button data-page="employees" data-permission="view_employees" data-i18n="employees">Xodimlar</button>
+        <button data-page="structure" data-permission="view_structure" data-i18n="structure">Tuzilma</button>
+        <button data-page="reports" data-permission="view_reports" data-i18n="reports">Hisobotlar</button>
+        <button data-page="schedules" data-permission="view_schedules" data-i18n="schedules">Jadvallar</button>
+        <button data-page="admins" data-superadmin="true" data-i18n="admins">Administratorlar</button>
+        <button data-page="settings" data-permission="manage_configuration" data-i18n="settings">Sozlamalar</button>
+      </nav>
+      <div class="aside-bottom">
+        <button id="langApp" class="text-button">Русский</button>
+        <button id="logout" class="text-button" data-i18n="logout">Chiqish</button>
+      </div>
+    </aside>
+
+    <main>
+      <header><h1 id="pageTitle">Boshqaruv paneli</h1><div id="statusBadge" class="badge">API</div></header>
+
+      <section id="page-dashboard" class="page">
+        <div class="metrics">
+          <article><strong id="metricEmployees">—</strong><span data-i18n="activeEmployees">Faol xodimlar</span></article>
+          <article><strong id="metricUnlinked">—</strong><span data-i18n="unlinked">Telegram ulanmagan</span></article>
+          <article><strong id="metricToday">—</strong><span data-i18n="todayReports">Bugungi hisobotlar</span></article>
+          <article><strong id="metricCritical">—</strong><span data-i18n="criticalOpen">Ochiq kritik</span></article>
+        </div>
+        <div class="card notice">
+          <h2 data-i18n="launchChecklist">Ishga tushirish holati</h2>
+          <p data-i18n="launchText">Avval bo‘limlar, filiallar va rollarni yarating. Keyin xodimlarni qo‘shib, ulanish kodlarini bering.</p>
+        </div>
+      </section>
+
+      <section id="page-employees" class="page hidden">
+        <div class="toolbar"><h2 data-i18n="employees">Xodimlar</h2><button id="openEmployeeModal" class="primary" data-i18n="addEmployee">Xodim qo‘shish</button></div>
+        <div class="card table-wrap"><table><thead><tr><th data-i18n="name">Ism</th><th data-i18n="department">Bo‘lim</th><th>Telegram</th><th>amoCRM</th><th></th></tr></thead><tbody id="employeesTable"></tbody></table></div>
+      </section>
+
+      <section id="page-structure" class="page hidden">
+        <div class="grid-3">
+          <div class="card"><h2 data-i18n="departments">Bo‘limlar</h2><form id="departmentForm" class="stack"><input name="code" placeholder="code" required><input name="name_uz" placeholder="O‘zbekcha nom" required><input name="name_ru" placeholder="Русское название" required><select name="group_code"><option value="office">Office</option><option value="stores">Stores</option><option value="call_center">Call centre</option><option value="managers">Managers</option></select><button class="primary">+</button></form><ul id="departmentList"></ul></div>
+          <div class="card"><h2 data-i18n="branches">Filiallar</h2><form id="branchForm" class="stack"><input name="code" placeholder="code" required><input name="name_uz" placeholder="O‘zbekcha nom" required><input name="name_ru" placeholder="Русское название" required><button class="primary">+</button></form><ul id="branchList"></ul></div>
+          <div class="card"><h2 data-i18n="roles">Rollar</h2><form id="roleForm" class="stack"><input name="code" placeholder="code" required><input name="name_uz" placeholder="O‘zbekcha nom" required><input name="name_ru" placeholder="Русское название" required><label><input name="is_manager" type="checkbox"> Manager</label><button class="primary">+</button></form><ul id="roleList"></ul></div>
+        </div>
+      </section>
+
+      <section id="page-reports" class="page hidden">
+        <div class="toolbar"><h2 data-i18n="reports">Hisobotlar</h2><button id="reloadReports" class="secondary" data-i18n="refresh">Yangilash</button></div>
+        <div class="card table-wrap"><table><thead><tr><th data-i18n="date">Sana</th><th data-i18n="employee">Xodim</th><th data-i18n="type">Turi</th><th data-i18n="priority">Ustuvorlik</th><th data-i18n="status">Holat</th><th>amoCRM</th></tr></thead><tbody id="reportsTable"></tbody></table></div>
+      </section>
+
+      <section id="page-schedules" class="page hidden">
+        <div class="toolbar"><h2 data-i18n="schedules">Jadvallar</h2></div>
+        <div class="card table-wrap"><table><thead><tr><th data-i18n="name">Nomi</th><th data-i18n="type">Turi</th><th data-i18n="group">Guruh</th><th data-i18n="time">Vaqt</th><th data-i18n="weekday">Hafta kuni</th></tr></thead><tbody id="schedulesTable"></tbody></table></div>
+      </section>
+
+      <section id="page-admins" class="page hidden">
+        <div class="grid-3">
+          <div class="card"><h2 data-i18n="addAdmin">Administrator qo‘shish</h2><form id="adminForm" class="stack"><input name="full_name" data-i18n-placeholder="name" placeholder="Ism" required><input name="email" type="email" placeholder="Email" required><input name="password" type="password" data-i18n-placeholder="password" placeholder="Parol" minlength="10" required><select name="language"><option value="uz">O‘zbekcha</option><option value="ru">Русский</option></select><input name="permissions" placeholder="view_dashboard, view_reports"><label><input name="is_superadmin" type="checkbox"> Super administrator</label><button class="primary" data-i18n="save">Saqlash</button></form><p id="adminError" class="error"></p></div>
+          <div class="card" style="grid-column:span 2"><h2 data-i18n="admins">Administratorlar</h2><div class="table-wrap"><table><thead><tr><th data-i18n="name">Ism</th><th>Email</th><th data-i18n="permissions">Ruxsatlar</th><th>Status</th></tr></thead><tbody id="adminsTable"></tbody></table></div></div>
+        </div>
+      </section>
+
+      <section id="page-settings" class="page hidden">
+        <div class="grid-3">
+          <div class="card"><h2 data-i18n="riskThresholds">Risk chegaralari</h2><form id="riskForm" class="stack"><label>Cash discrepancy (UZS)<input name="cash_discrepancy_uzs" type="number" min="0" required></label><label>Direct financial loss (UZS)<input name="direct_financial_loss_uzs" type="number" min="0" required></label><label>B2B opportunity at risk (UZS)<input name="b2b_opportunity_at_risk_uzs" type="number" min="0" required></label><label data-i18n-label="ackHours">Tasdiqlash muddati (soat)<input name="critical_acknowledgement_hours" type="number" min="0.25" step="0.25" required></label><button class="primary" data-i18n="save">Saqlash</button></form><p id="riskStatus"></p></div>
+          <div class="card" style="grid-column:span 2"><h2>amoCRM custom-field mapping</h2><p data-i18n="mappingHelp">amoCRM maydon IDlarini JSON ko‘rinishida kiriting.</p><textarea id="amoMapping" rows="18" style="width:100%;font-family:monospace;padding:12px;border:1px solid #d9dce2;border-radius:10px"></textarea><button id="saveAmoMapping" class="primary" data-i18n="save">Saqlash</button><p id="mappingStatus"></p></div>
+          <div class="card"><h2 data-i18n="kpiDefinitions">KPI ta’riflari</h2><form id="kpiForm" class="stack"><input name="code" placeholder="sales_revenue" required><input name="name_uz" placeholder="O‘zbekcha nom" required><input name="name_ru" placeholder="Русское название" required><input name="unit" placeholder="UZS / count / %" required><select name="department_id"><option value="">—</option></select><select name="role_id"><option value="">—</option></select><button class="primary" data-i18n="save">Saqlash</button></form><ul id="kpiList"></ul></div>
+          <div class="card"><h2 data-i18n="kpiTargets">Xodim KPI maqsadi</h2><form id="targetForm" class="stack"><select name="employee_id" required></select><select name="kpi_definition_id" required></select><select name="period"><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select><input name="target_value" type="number" step="any" min="0" required><input name="effective_from" type="date" required><button class="primary" data-i18n="save">Saqlash</button></form><p id="targetStatus"></p></div>
+          <div class="card" style="grid-column:span 3"><h2 data-i18n="reportTemplates">Hisobot shablonlari</h2><form id="templateForm" class="stack"><select name="template_id" required></select><label>O‘zbekcha savollar<textarea name="questions_uz" rows="8"></textarea></label><label>Русские вопросы<textarea name="questions_ru" rows="8"></textarea></label><label>AI instructions<textarea name="extraction_instructions" rows="4"></textarea></label><button class="primary" data-i18n="save">Saqlash</button></form><p id="templateStatus"></p></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="employeeModal">
+    <form id="employeeForm" class="modal-form" method="dialog">
+      <div class="toolbar"><h2 data-i18n="addEmployee">Xodim qo‘shish</h2><button value="cancel" class="icon-button">×</button></div>
+      <label data-i18n-label="name">Ism<input name="full_name" required></label>
+      <label data-i18n-label="phone">Telefon<input name="phone"></label>
+      <label data-i18n-label="language">Til<select name="language"><option value="uz">O‘zbekcha</option><option value="ru">Русский</option></select></label>
+      <label data-i18n-label="department">Bo‘limlar<select name="department_ids" multiple size="4"></select></label>
+      <label data-i18n-label="branch">Filiallar<select name="branch_ids" multiple size="4"></select></label>
+      <label data-i18n-label="role">Rollar<select name="role_ids" multiple size="4"></select></label>
+      <label data-i18n-label="manager">Rahbar<select name="direct_manager_id"><option value="">—</option></select></label>
+      <label data-i18n-label="extraRecipients">Qo‘shimcha qabul qiluvchilar<select name="extra_recipient_ids" multiple size="4"></select></label>
+      <label>amoCRM user ID<input name="amocrm_user_id" type="number"></label>
+      <label><input name="can_receive_reports" type="checkbox"> <span data-i18n="canReceive">Hisobot qabul qiladi</span></label>
+      <label><input name="can_view_confidential" type="checkbox"> <span data-i18n="confidentialAccess">Maxfiy hisobotlarni ko‘radi</span></label>
+      <label><input name="all_company" type="checkbox"> <span data-i18n="allCompany">Butun kompaniyani ko‘radi</span></label>
+      <button class="primary" type="submit" data-i18n="save">Saqlash</button>
+      <p id="employeeError" class="error"></p>
+    </form>
+  </dialog>
+
+  <dialog id="codeModal"><div class="modal-form"><h2 data-i18n="activationCode">Ulanish kodi</h2><code id="activationCode"></code><p id="activationExpiry"></p><button onclick="document.getElementById('codeModal').close()" class="primary">OK</button></div></dialog>
+  <script src="/static/admin.js"></script>
+</body>
+</html>
