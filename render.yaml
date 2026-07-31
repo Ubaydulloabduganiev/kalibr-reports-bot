@@ -1,12 +1,10 @@
 envVarGroups:
-  - name: kalibr-reports-shared
+  - name: kalibr-reports-free-pilot
     envVars:
       - key: APP_ENV
         value: production
       - key: APP_TIMEZONE
         value: Asia/Tashkent
-      - key: APP_BASE_URL
-        sync: false
       - key: AUTO_CREATE_SCHEMA
         value: "false"
       - key: ADMIN_COOKIE_SECURE
@@ -25,102 +23,24 @@ envVarGroups:
         value: https://kalibrbooks.amocrm.ru
       - key: AMOCRM_ACCESS_TOKEN
         sync: false
-      - key: AMOCRM_PIPELINE_ID
-        sync: false
-      - key: AMOCRM_NEW_STAGE_ID
-        sync: false
-      - key: AMOCRM_CRITICAL_STAGE_ID
-        sync: false
-      - key: AMOCRM_RESOLVED_STAGE_ID
-        sync: false
-      - key: S3_ENDPOINT_URL
-        sync: false
-      - key: S3_ACCESS_KEY_ID
-        sync: false
-      - key: S3_SECRET_ACCESS_KEY
-        sync: false
-      - key: S3_BUCKET
-        value: kalibr-reports
-      - key: S3_REGION
-        value: auto
 
 services:
   - type: web
-    name: kalibr-reports-api
+    name: kalibr-reports-bot
     runtime: docker
+    plan: free
     dockerfilePath: ./Dockerfile
     healthCheckPath: /health
     dockerCommand: sh -c "alembic upgrade head && python -m app.seed && uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-10000}"
     envVars:
-      - fromGroup: kalibr-reports-shared
+      - fromGroup: kalibr-reports-free-pilot
       - key: DATABASE_URL
         fromDatabase:
           name: kalibr-reports-db
           property: connectionString
-      - key: REDIS_URL
-        fromService:
-          type: keyvalue
-          name: kalibr-reports-redis
-          property: connectionString
-
-  - type: worker
-    name: kalibr-reports-bot
-    runtime: docker
-    dockerfilePath: ./Dockerfile
-    dockerCommand: python -m app.bot.main
-    envVars:
-      - fromGroup: kalibr-reports-shared
-      - key: DATABASE_URL
-        fromDatabase:
-          name: kalibr-reports-db
-          property: connectionString
-      - key: REDIS_URL
-        fromService:
-          type: keyvalue
-          name: kalibr-reports-redis
-          property: connectionString
-
-  - type: worker
-    name: kalibr-reports-worker
-    runtime: docker
-    dockerfilePath: ./Dockerfile
-    dockerCommand: celery -A app.tasks.celery_app.celery_app worker --loglevel=INFO --concurrency=2
-    envVars:
-      - fromGroup: kalibr-reports-shared
-      - key: DATABASE_URL
-        fromDatabase:
-          name: kalibr-reports-db
-          property: connectionString
-      - key: REDIS_URL
-        fromService:
-          type: keyvalue
-          name: kalibr-reports-redis
-          property: connectionString
-
-  - type: worker
-    name: kalibr-reports-beat
-    runtime: docker
-    dockerfilePath: ./Dockerfile
-    dockerCommand: celery -A app.tasks.celery_app.celery_app beat --loglevel=INFO
-    envVars:
-      - fromGroup: kalibr-reports-shared
-      - key: DATABASE_URL
-        fromDatabase:
-          name: kalibr-reports-db
-          property: connectionString
-      - key: REDIS_URL
-        fromService:
-          type: keyvalue
-          name: kalibr-reports-redis
-          property: connectionString
-
-  - type: keyvalue
-    name: kalibr-reports-redis
-    ipAllowList: []
-    plan: starter
 
 databases:
   - name: kalibr-reports-db
-    plan: basic-256mb
+    plan: free
     databaseName: kalibr_reports
     user: kalibr_reports
