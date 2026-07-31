@@ -13,6 +13,10 @@ envVarGroups:
         generateValue: true
       - key: BOOTSTRAP_KEY
         generateValue: true
+      - key: TELEGRAM_WEBHOOK_SECRET
+        generateValue: true
+      - key: CRON_SECRET
+        generateValue: true
       - key: TELEGRAM_BOT_TOKEN
         sync: false
       - key: GEMINI_API_KEY
