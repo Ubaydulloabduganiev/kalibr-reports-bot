@@ -25,18 +25,35 @@ templates = Jinja2Templates(directory=BASE_DIR / "templates")
 
 bot: Bot | None = None
 dispatcher: Dispatcher | None = None
+scheduler_task: asyncio.Task | None = None
+tick_lock = asyncio.Lock()
 
 
 async def _run_tick() -> None:
-    """Run persistent scheduled work without Redis/Celery for the free pilot."""
-    await _dispatch()
-    await _check_critical()
-    await _process_outbox()
+    """Run scheduled work without Redis/Celery for the free pilot."""
+    async with tick_lock:
+        await _dispatch()
+        await _check_critical()
+        await _process_outbox()
+
+
+async def _scheduler_loop() -> None:
+    """Run minute-level schedules while the free web service is awake."""
+    while True:
+        try:
+            await _run_tick()
+        except asyncio.CancelledError:
+            raise
+        except Exception:
+            # A failed tick must not stop future reminders/sync attempts.
+            pass
+        await asyncio.sleep(60)
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    global bot, dispatcher
+    global bot, dispatcher, scheduler_task
+
     if settings.auto_create_schema:
         await init_db()
 
@@ -54,14 +71,22 @@ async def lifespan(_: FastAPI):
                 drop_pending_updates=False,
             )
 
+    scheduler_task = asyncio.create_task(_scheduler_loop(), name="kalibr-report-scheduler")
+
     yield
+
+    if scheduler_task:
+        scheduler_task.cancel()
+        with suppress(asyncio.CancelledError):
+            await scheduler_task
+        scheduler_task = None
 
     if bot:
         with suppress(Exception):
             await bot.session.close()
 
 
-app = FastAPI(title=settings.app_name, version="0.2.0", lifespan=lifespan)
+app = FastAPI(title=settings.app_name, version="0.2.1", lifespan=lifespan)
 app.include_router(api_router)
 app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 
